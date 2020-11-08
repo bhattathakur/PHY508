@@ -179,9 +179,25 @@ ISING_CONF::ISING_CONF(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
   //CREATE WEIGHT TABLE
   //possible sum of spin of neighbours of a site is 5 (0,1,2,3,4) 0->all down, 4->all up
   //new and old both spin configuration have 2 possible values 0, 1
+  //define 2*2 vector for the new and old spin configuration
+  //vector <vector<double> > oldnewspin(2,vector<double>(2,0)); //2*2 vector of doubles initilized with 0
+
+  //resize wght_tbl the 5*oldnewspin vector named wght_tbl
+
+  //wght_tbl.resize(5,oldnewspin);
   if(p.latt_=="sqlatt_PBC")
   {
-    // ---------COMPLETE CODE HERE--------!
+    vector <vector<double> > oldnewspin(2,vector<double>(2,0)); //2*2 vector of doubles initilized with 0
+    wght_tbl.resize(5,oldnewspin); //resize wght_tbl
+    for (int i=0;i<5;i++){
+      for (int j=0;j<2;j++){
+        for (int k=0;k<2;k++){
+          wght_tbl[i][j][k]=exp(2.*p.beta*1.0*(j-k)*(2.0*i-4));
+        }
+      }
+    }
+
+  // ---------COMPLETE CODE HERE--------!
   }
   else
   {cout <<"NEED TO CODE ALL LATTICE OPTIONS"<<endl;}
@@ -191,9 +207,18 @@ ISING_CONF::~ISING_CONF()
 {
   dfout.close();
 }
-
+//writes the configuration in a file
 void ISING_CONF::conf_write(const PARAMS& p, const LATTICE& latt)
 {
+  ofstream outputfile;
+  string filename="isingconf.dat"; //stores configuration
+  outputfile.open(filename);
+  if(outputfile.is_open()){
+    for(int i=0;i<latt.Nsite;i++)outputfile<<spin[i]<<endl;
+    outputfile.close();
+  }
+  else cout<<filename<<"\t doesnot exist"<<endl;
+
   // ---------COMPLETE CODE HERE--------!
 }
 
