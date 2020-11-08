@@ -47,6 +47,7 @@ class ISING_CONF
   private:
     vector <int> spin;
     ofstream dfout;
+
     vector <vector<vector<double> > > wght_tbl;
     // these are the observables
     double energy;
@@ -201,6 +202,9 @@ ISING_CONF::ISING_CONF(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
   }
   else
   {cout <<"NEED TO CODE ALL LATTICE OPTIONS"<<endl;}
+
+  //open the file to write output
+  dfout.open("outputdata.out");
 }
 
 ISING_CONF::~ISING_CONF()
@@ -222,25 +226,75 @@ void ISING_CONF::conf_write(const PARAMS& p, const LATTICE& latt)
   // ---------COMPLETE CODE HERE--------!
 }
 
-
+//flips the single spin in the entire lattice based on the probability
 void ISING_CONF::sweep(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
 {
+  for (int site=0;site<latt.Nsite;site++){ //go through all the sites 
+    int neighborsum=0;          //sum of neighbor spins
+    int spin_new=1-spin[site];  //flip the spin
+    for(int nbr=0;nbr<latt.nrnbrs[site].size();nbr++){//spin sum of neighbors
+      neighborsum+=spin[latt.nrnbrs[site][nbr]];
+    } 
+//randDblExc()-> real number in (0,1)
+//accept if ratio>1
+
+    if(wght_tbl[neighborsum][spin_new][spin[site]]>ran1.randDblExc())spin[site]=spin_new;
+
+  }
   /*SWEEP THROUGH THE LATTICE*/
   // ---------COMPLETE CODE HERE--------!
 }
 
+//resets the values of observable energy, magnetization and their sqare to 0
 void ISING_CONF::meas_clear(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
 {
   // ---------COMPLETE CODE HERE--------!
+  // reset the values to 0
+  energy=0.;
+  energy_sq=0.;
+  mag=0;
+  mag_sq=0;
 }
 
+//calcualte the value of observables
 void ISING_CONF::meas(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
 {
+  //magnetization
+  //magnetization=sum(s_i) s_i=(+/-)1
+  //our spin is in the form of sigma=0,1
+  //s=2*sigma-1
+  double magnetization=0;
+  for (int site=0;site<latt.Nsite;site++){
+    magnetization+=2.*spin[site]-1;
+  }
+  //average magnetization
+  magnetization=1.0*magnetization/latt.Nsite;
+  //energy
+  //energy=-sum(s_i*s_j) <ij> are the nearest neighbors
+  double ener=0.;
+  for(int site=0;site<latt.Nsite;site++)
+  {
+    for (int i=0;i<latt.nrnbrs[site].size();i++){
+      ener+=-(2.0*spin[site]-1)*(2.0*spin[latt.nrnbrs[site][i]]-1);
+    }
+  }
+  ener=ener/2.;//counted twice in loop
+  ener=1.0*ener/latt.Nsite; //average energy
+
+
+  //calulation of energy, magnetization and squares
+  mag+=magnetization;
+  mag_sq+=magnetization*magnetization;
+  energy+=ener;
+  energy_sq+=ener*ener;
+
   // ---------COMPLETE CODE HERE--------!
 }
 
 void ISING_CONF::binwrite(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
 {
+  //write the output in the output file
+  dfout<<1.0*energy/p.Nmcs<<"\t"<<1.0*energy_sq/p.Nmcs<<"\t"<<1.0*mag/p.Nmcs<<"\t"<<1.0*mag_sq/p.Nmcs<<endl;
   // ---------COMPLETE CODE HERE--------!
-}
+ }
 
