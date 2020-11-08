@@ -71,6 +71,7 @@ int main(void)
   //PRODUCTION
   for (int bin=0;bin<p.Nbin;bin++)
   {
+    cout<<"bin\t"<<bin<<endl;
     ising.meas_clear(p,latt,ran1);
     for(int mcs=0;mcs<p.Nmcs;mcs++)
     {
@@ -168,8 +169,7 @@ void LATTICE::print()
 
 ISING_CONF::ISING_CONF(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
 {
-  // INITIALIZE SPIN CONFIG
-  // ---------COMPLETE CODE HERE--------!
+  //cout<<"inside ising_conf"<<endl;
 
   //size of spin conf vector is Nsite
   spin.resize(latt.Nsite);
@@ -198,7 +198,6 @@ ISING_CONF::ISING_CONF(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
       }
     }
 
-  // ---------COMPLETE CODE HERE--------!
   }
   else
   {cout <<"NEED TO CODE ALL LATTICE OPTIONS"<<endl;}
@@ -214,6 +213,7 @@ ISING_CONF::~ISING_CONF()
 //writes the configuration in a file
 void ISING_CONF::conf_write(const PARAMS& p, const LATTICE& latt)
 {
+  //cout<<"inside conf_write"<<endl;
   ofstream outputfile;
   string filename="isingconf.dat"; //stores configuration
   outputfile.open(filename);
@@ -223,7 +223,6 @@ void ISING_CONF::conf_write(const PARAMS& p, const LATTICE& latt)
   }
   else cout<<filename<<"\t doesnot exist"<<endl;
 
-  // ---------COMPLETE CODE HERE--------!
 }
 
 //flips the single spin in the entire lattice based on the probability
@@ -235,20 +234,17 @@ void ISING_CONF::sweep(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
     for(int nbr=0;nbr<latt.nrnbrs[site].size();nbr++){//spin sum of neighbors
       neighborsum+=spin[latt.nrnbrs[site][nbr]];
     } 
-//randDblExc()-> real number in (0,1)
-//accept if ratio>1
+    //randDblExc()-> real number in (0,1)
+    //accept if ratio>1
 
     if(wght_tbl[neighborsum][spin_new][spin[site]]>ran1.randDblExc())spin[site]=spin_new;
-
   }
-  /*SWEEP THROUGH THE LATTICE*/
-  // ---------COMPLETE CODE HERE--------!
 }
 
 //resets the values of observable energy, magnetization and their sqare to 0
 void ISING_CONF::meas_clear(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
 {
-  // ---------COMPLETE CODE HERE--------!
+  //cout<<"inside meas_clear"<<endl;
   // reset the values to 0
   energy=0.;
   energy_sq=0.;
@@ -259,6 +255,7 @@ void ISING_CONF::meas_clear(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
 //calcualte the value of observables
 void ISING_CONF::meas(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
 {
+  //cout<<"inside meas"<<endl;
   //magnetization
   //magnetization=sum(s_i) s_i=(+/-)1
   //our spin is in the form of sigma=0,1
@@ -269,6 +266,7 @@ void ISING_CONF::meas(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
   }
   //average magnetization
   magnetization=1.0*magnetization/latt.Nsite;
+
   //energy
   //energy=-sum(s_i*s_j) <ij> are the nearest neighbors
   double ener=0.;
@@ -281,20 +279,17 @@ void ISING_CONF::meas(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
   ener=ener/2.;//counted twice in loop
   ener=1.0*ener/latt.Nsite; //average energy
 
-
   //calulation of energy, magnetization and squares
   mag+=magnetization;
   mag_sq+=magnetization*magnetization;
   energy+=ener;
   energy_sq+=ener*ener;
-
-  // ---------COMPLETE CODE HERE--------!
 }
 
 void ISING_CONF::binwrite(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
 {
   //write the output in the output file
-  dfout<<1.0*energy/p.Nmcs<<"\t"<<1.0*energy_sq/p.Nmcs<<"\t"<<1.0*mag/p.Nmcs<<"\t"<<1.0*mag_sq/p.Nmcs<<endl;
-  // ---------COMPLETE CODE HERE--------!
+  //dfout<<1.0*energy/p.Nmcs<<"\t"<<1.0*energy_sq/p.Nmcs<<"\t"<<1.0*mag/p.Nmcs<<"\t"<<1.0*mag_sq/p.Nmcs<<endl;
+  dfout<<1.0*energy/p.Nmcs<<setw(25)<<1.0*energy_sq/p.Nmcs<<setw(25)<<1.0*mag/p.Nmcs<<setw(25)<<1.0*mag_sq/p.Nmcs<<endl;
  }
 
