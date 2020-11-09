@@ -2,21 +2,21 @@ import os
 import time
 import numpy as np
 from scipy import stats
-L=8
+L=4
 Nsite=L**2 #number of sites=L^2
 Neql=1000
 Nmcs=100
 Nbin=100
 seed=100
 latt='sqlatt_PBC'
-datafile="mcl8data.dat"
+datafile="mcl4data.dat"
 outputdatafile="outputdata.out"
 out=open(datafile,'a')
 #alldata="resultmc.dat"
 for i in np.arange(0.1,25,0.1):#range of Temp
     print("run for T=\t",i+1)
     time.sleep(0.5)
-    beta=1.0/i                 #changing Temp to beta
+    beta=1.0/(1.0*i)                 #changing Temp to beta
     print("run for T=\t",i+1)
     f=open("param.dat","w")
     #write in param.dat
@@ -38,7 +38,7 @@ for i in np.arange(0.1,25,0.1):#range of Temp
     m_expect_error=stderror[2]
     msq_expect_error=stderror[3]
     ##calculatation of chi
-    #if i<1.4: m_expect=0
+    if i<2: m_expect=0
     X=1.0*(Nsite*beta)*(msq_expect-m_expect**2)
     #print("X(mc)\t",X)
     #print("e(mc)\t",e_expect)

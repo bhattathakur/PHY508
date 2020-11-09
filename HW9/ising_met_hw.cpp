@@ -260,7 +260,7 @@ void ISING_CONF::meas(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
   //magnetization=sum(s_i) s_i=(+/-)1
   //our spin is in the form of sigma=0,1
   //s=2*sigma-1
-  double magnetization=0;
+  double magnetization=0.;
   for (int site=0;site<latt.Nsite;site++){
     magnetization+=2.*spin[site]-1;
   }
@@ -290,6 +290,6 @@ void ISING_CONF::binwrite(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
 {
   //write the output in the output file
   //dfout<<1.0*energy/p.Nmcs<<"\t"<<1.0*energy_sq/p.Nmcs<<"\t"<<1.0*mag/p.Nmcs<<"\t"<<1.0*mag_sq/p.Nmcs<<endl;
-  dfout<<1.0*energy/p.Nmcs<<setw(25)<<1.0*energy_sq/p.Nmcs<<setw(25)<<1.0*mag/p.Nmcs<<setw(25)<<1.0*mag_sq/p.Nmcs<<endl;
+  dfout<<1.0*energy/double(p.Nmcs)<<setw(25)<<1.0*energy_sq/double(p.Nmcs)<<setw(25)<<1.0*mag/double(p.Nmcs)<<setw(25)<<1.0*mag_sq/double(p.Nmcs)<<endl;
  }
 

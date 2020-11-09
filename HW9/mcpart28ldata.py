@@ -12,7 +12,7 @@ datafile="mcl8data.dat"
 outputdatafile="outputdata.out"
 out=open(datafile,'a')
 #alldata="resultmc.dat"
-for i in np.arange(0.1,25,0.1):#range of Temp
+for i in np.arange(0.6,25,0.1):#range of Temp
     print("run for T=\t",i+1)
     beta=1.0/i                 #changing Temp to beta
     print("run for T=\t",i+1)

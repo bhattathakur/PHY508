@@ -11,6 +11,7 @@ latt='sqlatt_PBC'
 datafile="outputdata.out"
 #alldata="resultmc.dat"
 for i in range(5):
+    if i!=2:continue
     print("run\t",i+1)
     f=open("param.dat","w")
     outfile='output'+str(i)+'.dat' #stores the data from 1 run
@@ -25,13 +26,13 @@ for i in range(5):
     command='cp '+datafile+' '+outfile
     os.system(command)
     #open the resultant data file
-    #data=np.loadtxt(datafile)
-    #averages=np.mean(data,axis=0)
+    data=np.loadtxt("output2.dat")
+    averages=np.mean(data,axis=0)
     #e_expect=averages[0]
     #esq_expect=averages[1]
     #m_expect=averages[2]
     #msq_expect=averages[3]
-    #print("averages\n",averages)
+    print("averages\n",averages)
     #stderror=stats.sem(data)
     #e_expect_error=stderror[0]
     #esq_expect_error=stderror[1]

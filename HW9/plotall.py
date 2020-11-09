@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import time
 
 ylabel=['',r'$C_{v}$',r'$\chi$']
-savefile=['','CvvsT1','chivsT1']
+savefile=['','CvvsT3','chivsT3']
 titles=['',r'Specific heat $C_{v}$ vs Temperature Plot',r'Susceptibility $\chi$ vs Temperature Plot'] 
 plt.rcParams['xtick.top']=True
 plt.rcParams['ytick.right']=True
