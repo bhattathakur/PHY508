@@ -2,21 +2,8 @@ import numpy as np
 import os
 import sys    
 
-L=4                       #size of square lattice
-Nsite = L*L               #sites number
-Nstate=int(pow(2,Nsite))  #possible configuration size
-
-#file to save the data
-datafile='l4enumdata'+str(L)+'.dat'
-
-#check and create the file if doesnot exist
-if os.path.exists(datafile):
-    print(datafile+ " exists.")
-    os.remove(datafile)
-    print(datafile+ " removed.")
-
-else:print(datafile+ "doesnot exist.")
-
+Len=[4,4,4,3,3]
+beta=[0.5,1,2,0.5,1.0]
 #returns the spin of the configuration
 def get_mag(spin):    
     return np.sum(spin)
@@ -48,11 +35,30 @@ def get_ener(spin):
     total=dotx+doty
     return total
 
-#open the file to write the T,E,C_v, X after each T
-f=open(datafile,'a')
-f.write("{:}\t{:}\t{:}\t{:}\n".format("T","E","C_v","X")) #header to the data file skipped in the plot
 
-for T in np.arange(0.1,25,0.1):
+#file to store L, beta, <e>
+lbefile='lbetae.dat'
+lbe=open(lbefile,'a')
+for run in range(5):
+    T=1.0/beta[run]
+    L=Len[run]
+    print("run\n",run+1)
+    #file to save the data
+    datafile='enumdata'+str(run)+'.dat'
+    #open the file to write the T,E,C_v, X after each T
+    f=open(datafile,'w')
+    #check and create the file if doesnot exist
+    #if os.path.exists(datafile):
+    #    print(datafile+ " exists.")
+    #    os.remove(datafile)
+    #    print(datafile+ " removed.")
+
+    #else:print(datafile+ "doesnot exist.")
+    if run==0:f.write("{:}\t{:}\t{:}\t{:}\n".format("T","E","C_v","X")) #header to the data file skipped in the plot
+    if run==0:lbe.write("{}\t{}\t{}\t\t{}\n".format("L","beta","X(enum)","<e>(enum)"))
+
+    Nsite =L*L #sites number
+    Nstate=int(pow(2,Nsite))  #possible configuration size
     #print(40*'.')
     #declear z, e, e^2, m, m^2,energy to 0 to iterate the sum
     z=e=esq=m=msq=energy=0
@@ -67,7 +73,7 @@ for T in np.arange(0.1,25,0.1):
         mag=get_mag(spin)
         ener=get_ener(spin)
         factor=np.exp(-ener/T)   #used later
-        
+
         #Calculation of partition function
         z+=factor
         #calculation of energy
@@ -81,15 +87,18 @@ for T in np.arange(0.1,25,0.1):
 
     #Calculation of expectation values
     e_expect=1.0*e/z                #<e>
+    print("<e>\t",e_expect)
     esq_expect=1.0*esq/z            #<e^2>
     m_expect=1.0*m/z                #<m>
     msq_expect=1.0*msq/z            #<m^2>
-    
+
     #calculation of C_v, X and E
     C_v=1.0*(Nsite/T**2)*(esq_expect-e_expect**2)    #specific heat
     X=1.0*(Nsite/T)*(msq_expect-m_expect**2)         #susceptibility
     E=1.0*energy/z                                   #Energy
-                                                     
+
     #write in the file
     f.write("{:0.3f}\t{:0.3f}\t{:0.3f}\t{:0.3f}\n".format(T,E,C_v,X))
-f.close() #close the file
+    lbe.write("{:}\t{:0.2f}\t{:8.5f}\t{:>0.5f}\n".format(L,beta[run],X,e_expect))
+    f.close() #close the file
+lbe.close()
