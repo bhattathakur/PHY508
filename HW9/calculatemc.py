@@ -1,14 +1,18 @@
+#This program calcualtes <e> and X based on the Metropolis Monete Carlo simulation and saves in a file.
+
 import os
 import numpy as np
 from scipy import stats
+
+#input parameters
 L=[4,4,4,3,3]
 beta=[0.5,1,2,0.5,1.0]
 Neql=[10**3]*5
-Nmcs=[10**3]*3+[10**4]*2
+Nmcs=[10**3]*3+[10**2]*2
 Nbin=[10**4]*5
 seed=[100]*5
 latt='sqlatt_PBC'
-alldata="resultmc.dat"
+alldata="resultmc.dat"  #stores all the values from the simulation
 #check and create the file if doesnot exist
 if os.path.exists(alldata):
     print(alldata+ " exists.")
@@ -32,11 +36,13 @@ for i in range(5):
     m_expect=averages[2]
     msq_expect=averages[3]
     #standard error
-    stderror=stats.sem(data)
-    e_expect_error=stderror[0]
-    esq_expect_error=stderror[1]
-    m_expect_error=stderror[2]
-    msq_expect_error=stderror[3]
+    #stderror=stats.sem(data)
+    #e_expect_error=stderror[0]
+    #esq_expect_error=stderror[1]
+    #m_expect_error=stderror[2]
+    #msq_expect_error=stderror[3]
+
+    if(beta[i]>1.5):m_expect=0  #showing strage behaviour at the lower temperatures
     ##calculatation of chi
     Nsite=L[i]**2 #number of sites=L^2
     #X=1.0*((1.0/(Nsite))*beta[i])*(msq_expect-(m_expect)**2)

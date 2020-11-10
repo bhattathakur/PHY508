@@ -13,6 +13,10 @@ plt.rcParams['ytick.right']=True
 #datafiles l4enumdata4.dat,mcl4data.dat,mcl8data.dat
 inputfiles=["l4enumdata4.dat","mcl4data.dat","mcl8data.dat"]
 labels=["L=4 (enum)","L=4 (mc)","L=8 (mc)"]
+#linestyles=["--",":","--"]
+linestyles=["dotted","solid","solid"]
+alphas=[1,1,1]
+linewidths=[1.5,1,1]
 
 
 for j in range(1,3):
@@ -23,7 +27,7 @@ for j in range(1,3):
         data=np.loadtxt(inputfiles[i],skiprows=1,unpack=True) #skipped first row,unpacked the columns T,C_v,X
         xdata=data[0]    #T column
         ydata=data[j]    #y column
-        plt.plot(xdata,ydata,'-',label=labels[i])
+        plt.plot(xdata,ydata,'-',alpha=alphas[i],lw=linewidths[i],linestyle=linestyles[i],label=labels[i])
 
     plt.xlabel('T')
     plt.ylabel(ylabel[j])
