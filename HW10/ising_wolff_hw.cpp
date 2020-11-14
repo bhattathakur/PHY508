@@ -70,7 +70,8 @@ int main(void)
   // latt.print();
   //EQUILIBRATE
   for(int eql=0;eql<p.Neql;eql++)
-    ising.sweep(p,latt,ran1);
+    ising.Wolff_update(p,latt,ran1);
+    //ising.sweep(p,latt,ran1);
 
   //PRODUCTION
   for (int bin=0;bin<p.Nbin;bin++)
@@ -79,7 +80,8 @@ int main(void)
     ising.meas_clear(p,latt,ran1);
     for(int mcs=0;mcs<p.Nmcs;mcs++)
     {
-      ising.sweep(p,latt,ran1);
+      ising.Wolff_update(p,latt,ran1);
+      //ising.sweep(p,latt,ran1);
       ising.meas(p,latt,ran1);
     }
     ising.binwrite(p,latt,ran1);
@@ -239,18 +241,17 @@ void ISING_CONF::sweep(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
 //flips the single cluster based on the Wolff algorithm
 void ISING_CONF::Wolff_update(const PARAMS& p, const LATTICE& latt,MTRand& ran)
 {
-  //uint32 randInt( const uint32 n );     // integer in [0,n] for n < 2^32
-  //double rand();                        // real number in [0,1]
 
   //go to random site of the cluster
-  int ransite=ran.randInt(latt.Nsite-1);
+  int ransite=ran.randInt(latt.Nsite-1); //randInt(n) -> [0,n] 
 
   //creat a stack vector to store the sites which are asked and accepted
   vector <int> stk;
 
   //create a vector which stores the sites which are asked
   //at the begining all the elements are assigned to 0, asked will be updated to 1.
-  vector <int> asked(latt.Nsite,0);
+
+  vector <int> asked(latt.Nsite,0);//size same as the size of the lattice
 
   //update stack vector and asked vector with the ransite
   stk.push_back(ransite); //random site added to stack
@@ -263,30 +264,29 @@ void ISING_CONF::Wolff_update(const PARAMS& p, const LATTICE& latt,MTRand& ran)
   //if the neighbour have same spin as the site and its probability less than activation probability it is 
   //added in the stack and asked vector is also updated
 
-  //activation probabiliy
+  //activation probabiliy from defination of Wolff algorithm
   double pr=1.0-exp(-2.0*p.beta);
   
-  for (int site=0;site<stk.size();site++)
+  for (int site=0;site<stk.size();site++)       //loop in the stack
   {
     int stk_value=stk[site];                    //get the stack value
     int nbrsize=latt.nrnbrs[stk_value].size();  //size of nearest neighbours
-
-    for(int nb=0;nb<nbrsize;nb++)
+    cout<<"size of the nearest neighbour\t"<<nbrsize<<endl;
+    for(int nb=0;nb<nbrsize;nb++)               //loop over neighbors
     {
-      int test=latt.nrnbrs[stk_value][nb];
-      if(asked[test]==0)
+      int test=latt.nrnbrs[stk_value][nb];      //value of neighbor
+      if(asked[test]==0)                        //check if already asked
       {
-        if(spin[test]==ran_spin)
+        if(spin[test]==ran_spin)                //spin of neighbor
         {
-          if(ran.rand()<pr)
+          if(ran.rand()<pr)                     //double rand(); real number in [0,1]
           {
-            asked[test]=1;       //add to the asked list
-            stk.push_back(test); //add to the stack list
-
+            cout<<"inside core test\t"<<endl;
+            asked[test]=1;                      //add to the asked list
+            stk.push_back(test);                //add to the stack list
           }
         }
       }
-
     }
     
 //get the size of wolff cluster
@@ -308,6 +308,7 @@ void ISING_CONF::meas_clear(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
   energy_sq=0.;
   mag=0;
   mag_sq=0;
+  wolff_size=0.;
 }
 
 //calcualte the value of observables
@@ -348,6 +349,7 @@ void ISING_CONF::binwrite(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
 {
   //write the output in the output file
   //dfout<<1.0*energy/p.Nmcs<<"\t"<<1.0*energy_sq/p.Nmcs<<"\t"<<1.0*mag/p.Nmcs<<"\t"<<1.0*mag_sq/p.Nmcs<<endl;
-  dfout<<1.0*energy/double(p.Nmcs)<<setw(25)<<1.0*energy_sq/double(p.Nmcs)<<setw(25)<<1.0*mag/double(p.Nmcs)<<setw(25)<<1.0*mag_sq/double(p.Nmcs)<<endl;
+  dfout.precision(5);
+  dfout<<fixed<<1.0*energy/double(p.Nmcs)<<setw(15)<<1.0*energy_sq/double(p.Nmcs)<<setw(15)<<1.0*mag/double(p.Nmcs)<<setw(15)<<1.0*mag_sq/double(p.Nmcs)<<setw(15)<<1.0*wolff_size/double(p.Nmcs)<<endl;
  }
 
