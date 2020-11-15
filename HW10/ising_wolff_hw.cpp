@@ -45,7 +45,7 @@ class ISING_CONF
     void binwrite(const PARAMS&,const LATTICE&,MTRand&);
 
     //Add a function for Wolff sinlge cluster algorithm
-    void Wolff_update(const PARAMS&, const LATTICE&,MTRand&);
+    void wolff_update(const PARAMS&, const LATTICE&,MTRand&);
     ~ISING_CONF();// destructor
   private:
     vector <int> spin;
@@ -70,7 +70,7 @@ int main(void)
   // latt.print();
   //EQUILIBRATE
   for(int eql=0;eql<p.Neql;eql++)
-    ising.Wolff_update(p,latt,ran1);
+    ising.wolff_update(p,latt,ran1);
     //ising.sweep(p,latt,ran1);
 
   //PRODUCTION
@@ -80,7 +80,7 @@ int main(void)
     ising.meas_clear(p,latt,ran1);
     for(int mcs=0;mcs<p.Nmcs;mcs++)
     {
-      ising.Wolff_update(p,latt,ran1);
+      ising.wolff_update(p,latt,ran1);
       //ising.sweep(p,latt,ran1);
       ising.meas(p,latt,ran1);
     }
@@ -239,7 +239,7 @@ void ISING_CONF::sweep(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
 }
 
 //flips the single cluster based on the Wolff algorithm
-void ISING_CONF::Wolff_update(const PARAMS& p, const LATTICE& latt,MTRand& ran)
+void ISING_CONF::wolff_update(const PARAMS& p, const LATTICE& latt,MTRand& ran)
 {
 
   //go to random site of the cluster
@@ -271,17 +271,17 @@ void ISING_CONF::Wolff_update(const PARAMS& p, const LATTICE& latt,MTRand& ran)
   {
     int stk_value=stk[site];                    //get the stack value
     int nbrsize=latt.nrnbrs[stk_value].size();  //size of nearest neighbours
-    cout<<"size of the nearest neighbour\t"<<nbrsize<<endl;
+    //cout<<"size of the nearest neighbour\t"<<nbrsize<<endl;
     for(int nb=0;nb<nbrsize;nb++)               //loop over neighbors
     {
       int test=latt.nrnbrs[stk_value][nb];      //value of neighbor
       if(asked[test]==0)                        //check if already asked
       {
-        if(spin[test]==ran_spin)                //spin of neighbor
+        if(spin[test]==ran_spin)                //check if spin are same
         {
           if(ran.rand()<pr)                     //double rand(); real number in [0,1]
           {
-            cout<<"inside core test\t"<<endl;
+            //cout<<"inside core test\t"<<endl;
             asked[test]=1;                      //add to the asked list
             stk.push_back(test);                //add to the stack list
           }
@@ -295,8 +295,6 @@ wolff_size+=stk.size();
 //flip the spins of the sites in the stack
 for (int i=0;i<stk.size();i++)spin[stk[i]]=1-spin[stk[i]];
   }
-
-  
 }
 
 //resets the values of observable energy, magnetization and their sqare to 0
