@@ -28,7 +28,7 @@ public:
   LATTICE(const PARAMS&);//constructor
   int Nsite;// number of lattice sites
   int Lx,Ly;
-  vector<vector<int> > nrnbrs;
+  vector<vector<int> > nrnbrs;//vector of nearest neighbors
   void print ();
   string latt_;
 };
@@ -43,6 +43,9 @@ class ISING_CONF
 
     void meas(const PARAMS&,const LATTICE&,MTRand&);
     void binwrite(const PARAMS&,const LATTICE&,MTRand&);
+
+    //Add a function for Wolff sinlge cluster algorithm
+    void wolff_update(const PARAMS&, const LATTICE&,MTRand&);
     ~ISING_CONF();// destructor
   private:
     vector <int> spin;
@@ -54,6 +57,8 @@ class ISING_CONF
     double energy_sq;
     double mag;
     double mag_sq;
+    double pr;
+    double wolff_size;
 };
 
 int main(void)
@@ -65,17 +70,22 @@ int main(void)
 
   // latt.print();
   //EQUILIBRATE
+  // cout<<"running equilibrate\t"<<endl;
   for(int eql=0;eql<p.Neql;eql++)
-    ising.sweep(p,latt,ran1);
+    ising.wolff_update(p,latt,ran1);
+    //ising.sweep(p,latt,ran1);
 
   //PRODUCTION
   for (int bin=0;bin<p.Nbin;bin++)
   {
     cout<<"bin\t"<<bin<<endl;
+    //cout<<"inside production\t"<<endl;
     ising.meas_clear(p,latt,ran1);
     for(int mcs=0;mcs<p.Nmcs;mcs++)
     {
-      ising.sweep(p,latt,ran1);
+     // cout<<"inside Nmcs\n";
+      ising.wolff_update(p,latt,ran1);
+      //ising.sweep(p,latt,ran1);
       ising.meas(p,latt,ran1);
     }
     ising.binwrite(p,latt,ran1);
@@ -83,17 +93,8 @@ int main(void)
 }
 
 PARAMS::PARAMS(){
-  // ---------COMPLETE CODE HERE--------!
-  //initializes commonly used parameters from a file
-  //int Nlin; // linear size of lattice
-  //double beta; // 1/T
-  //int Neql;// eql sweeps
-  //int Nmcs;// sweeps in a bin
-  //int Nbin;// number of bin
-  //int SEED; // for MT
-  //string latt_;// lattice kind
   ifstream pfin;
-  pfin.open("param.dat");  
+  pfin.open("param.dat");  //file stores input parameters
   if (pfin.is_open()) { 
     pfin >> Nlin;
     pfin >> beta;
@@ -124,7 +125,7 @@ LATTICE::LATTICE (const PARAMS& p)
     {
       int x=site%Lx;                  //gives x of site
       int y=site/Ly;                  //gives y of site
-      vector <int> nrn; 		//vector to hold neighbour elements
+      vector <int> nrn; 		//vector to hold nearest neighbour elements
       (x+1<Lx)?nrn.push_back(site+1):nrn.push_back(site+1-Lx);  //use of ternary operator
       (y+1<Ly)?nrn.push_back(site+Ly):nrn.push_back(site-y*Ly);
       (x-1>=0)?nrn.push_back(site-1):nrn.push_back(site-1+Lx);
@@ -203,7 +204,7 @@ ISING_CONF::ISING_CONF(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
   {cout <<"NEED TO CODE ALL LATTICE OPTIONS"<<endl;}
 
   //open the file to write output
-  dfout.open("metoutput.out");
+  dfout.open("wolfoutput.out");
 }
 
 ISING_CONF::~ISING_CONF()
@@ -241,6 +242,77 @@ void ISING_CONF::sweep(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
   }
 }
 
+//flips the single cluster based on the Wolff algorithm
+void ISING_CONF::wolff_update(const PARAMS& p, const LATTICE& latt,MTRand& ran)
+{
+  //cout<<"inside wolff_update"<<endl;
+
+  //go to random site of the cluster
+  int ransite=ran.randInt(latt.Nsite-1); //randInt(n) -> [0,n] 
+  //cout<<"ransite\t"<<ransite<<endl;
+
+  //creat a stack vector to store the sites which are asked and accepted
+  vector <int> stk;
+
+  //create a vector which stores the sites which are asked
+  //at the begining all the elements are assigned to 0, asked will be updated to 1.
+
+  vector <int> asked(latt.Nsite,0);//size same as the size of the lattice
+
+  //update stack vector and asked vector with the ransite
+  stk.push_back(ransite); //random site added to stack
+  asked[ransite]=1;       //value of random site in asked vector is updated to 1
+
+  //get the spin of random site
+  int ran_spin=spin[ransite];
+  //cout<<"ran_spin\t"<<ran_spin<<endl;
+  
+  //check the nearest neighbors of values in the stack
+  //if the neighbour have same spin as the site and its probability less than activation probability it is 
+  //added in the stack and asked vector is also updated
+
+  //activation probabiliy from defination of Wolff algorithm
+  pr=1.0-exp(-2.0*p.beta);
+  //cout<<"pr="<<pr<<endl;
+  
+  for (int site=0;site<stk.size();site++)       //loop in the stack
+  {
+    int stk_value=stk[site];                    //get the stack value
+    //cout<<"stk_value\t"<<stk_value<<endl;
+    int nbrsize=latt.nrnbrs[stk_value].size();  //size of nearest neighbours
+    //cout<<"nbrsize\t"<<nbrsize<<endl;
+    //cout<<"size of the nearest neighbour\t"<<nbrsize<<endl;
+    for(int nb=0;nb<nbrsize;nb++)               //loop over neighbors
+    {
+      //cout<<"inside nb\t"<<endl;
+      int test=latt.nrnbrs[stk_value][nb];      //value of neighbor
+      //cout<<"test\t"<<endl;
+      if(asked[test]==0)                        //check if already asked
+      {
+       // cout<<"inside asked"<<endl;
+        if(spin[test]==ran_spin)                //check if spin are same
+        {
+        //cout<<"inside spin"<<endl;
+          if(ran.rand()<pr)                     //double rand(); real number in [0,1]
+          {
+            //cout<<"inside ran"<<endl;
+            //cout<<"inside core test\t"<<endl;
+            asked[test]=1;                      //add to the asked list
+            stk.push_back(test);                //add to the stack list
+          }
+        }
+      }
+    }
+  } 
+//get the size of wolff cluster
+wolff_size+=stk.size();
+
+//cout<<"stack size\t"<<stk.size()<<endl;
+//flip the spins of the sites in the stack
+for (int i=0;i<stk.size();i++)spin[stk[i]]=1-spin[stk[i]];
+  //}
+}
+
 //resets the values of observable energy, magnetization and their sqare to 0
 void ISING_CONF::meas_clear(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
 {
@@ -250,6 +322,7 @@ void ISING_CONF::meas_clear(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
   energy_sq=0.;
   mag=0;
   mag_sq=0;
+  wolff_size=0.;
 }
 
 //calcualte the value of observables
@@ -290,6 +363,8 @@ void ISING_CONF::binwrite(const PARAMS& p, const LATTICE& latt, MTRand& ran1)
 {
   //write the output in the output file
   //dfout<<1.0*energy/p.Nmcs<<"\t"<<1.0*energy_sq/p.Nmcs<<"\t"<<1.0*mag/p.Nmcs<<"\t"<<1.0*mag_sq/p.Nmcs<<endl;
-  dfout<<1.0*energy/double(p.Nmcs)<<setw(25)<<1.0*energy_sq/double(p.Nmcs)<<setw(25)<<1.0*mag/double(p.Nmcs)<<setw(25)<<1.0*mag_sq/double(p.Nmcs)<<endl;
+  dfout.precision(5);
+  dfout<<fixed<<1.0*energy/double(p.Nmcs)<<setw(15)<<1.0*energy_sq/double(p.Nmcs)<<setw(15)<<1.0*mag/double(p.Nmcs)<<setw(15)<<1.0*mag_sq/double(p.Nmcs)<<setw(15)<<1.0*wolff_size/(double(p.Nmcs)*latt.Nsite)<<endl;
+
  }
 

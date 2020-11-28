@@ -1,0 +1,15 @@
+#Critical temperature
+#1 sweep -> 1 unit of time 
+#2 sweeps -> 2 units of time
+# J=0.44 Critical temeperature
+# T_c=
+# getrid of equilibration for the average energy
+# time taken to de-correlate, equibration time
+#Nmcs=1
+#configuration vs time
+#conf in to conf out
+# exercise 
+# run the program at very low temperature
+# use that values to the 
+# random run at very high temperature
+# 
